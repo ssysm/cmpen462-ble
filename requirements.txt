@@ -1,0 +1,8 @@
+async-timeout==4.0.3
+bleak==0.21.1
+bless==0.2.6
+dbus-fast==2.21.1
+dbus-next==0.2.3
+pyasn1==0.6.0
+rsa==4.9
+typing_extensions==4.11.0

@@ -1,4 +1,5 @@
-import socket
+import asyncio
+from bleak import BleakClient
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
@@ -14,24 +15,23 @@ def encrypt_message(public_key, message):
         )
     )
 
-def main():
-    server_ip = 'server_ip_address'  # Server IP address
-    port = 65432  # Port number should match the server
+async def main():
+    address = "device_address"  # BLE device address
+    public_key_uuid = "public_key_uuid"  # UUID for the public key characteristic
+    write_uuid = "write_uuid"  # UUID for the writable characteristic where you send data
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((server_ip, port))
-        print("Connected to server at {}:{}".format(server_ip, port))
-
-        # Receive public key from the server
-        public_key_bytes = s.recv(2048)  # Adjust buffer size if necessary
+    async with BleakClient(address) as client:
+        # Read the public key from the BLE device
+        public_key_bytes = await client.read_gatt_char(public_key_uuid)
         public_key = load_pem_public_key(public_key_bytes)
 
+        # Encrypt a message using the retrieved public key
         message = "Hello, this is a test message from the client!"
         encrypted_message = encrypt_message(public_key, message)
-        
-        # Send encrypted message to the server
-        s.sendall(encrypted_message)
-        print("Encrypted message sent to the server.")
+
+        # Write the encrypted message back to the device
+        await client.write_gatt_char(write_uuid, encrypted_message)
+        print("Encrypted message sent to the device.")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
